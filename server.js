@@ -11,10 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 // Configuration de la connexion MongoDB
-mongoose.connect('mongodb+srv://khoudossmbacke18:Mbacke18@cluster0.oluqg.mongodb.net/Authentifications?retryWrites=true&w=majority&appName=Cluster0', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
+mongoose.connect('mongodb+srv://khoudossmbacke18:Mbacke18@cluster0.oluqg.mongodb.net/Authentifications?retryWrites=true&w=majority&appName=Cluster0');
 
 // Modèle Mongoose pour les services
 const ServiceSchema = new mongoose.Schema({
