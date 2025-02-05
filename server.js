@@ -11,7 +11,10 @@ app.use(cors());
 app.use(express.json());
 
 // Configuration de la connexion MongoDB
-mongoose.connect('mongodb+srv://khoudossmbacke18:Mbacke18@cluster0.oluqg.mongodb.net/Authentifications?retryWrites=true&w=majority&appName=Cluster0');
+mongoose.connect('mongodb+srv://khoudossmbacke18:Mbacke18@cluster0.oluqg.mongodb.net/Authentifications?retryWrites=true&w=majority&appName=Cluster0', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
 
 // Modèle Mongoose pour les services
 const ServiceSchema = new mongoose.Schema({
@@ -65,6 +68,7 @@ if (!fs.existsSync(uploadDir)){
 app.use('/uploads', express.static('uploads'));
 
 // Route pour ajouter un service
+// Dans votre route POST d'ajout de service
 app.post('/api/services/ajouter', 
   upload.fields([
     { name: 'photos', maxCount: 5 }, 
@@ -75,16 +79,17 @@ app.post('/api/services/ajouter',
       // Récupérer les données du formulaire
       const { nom, categorie, description } = req.body;
 
-      // Préparer les chemins des fichiers
+      // Modifier cette partie pour créer des URL complètes
+      const baseUrl = req.protocol + '://' + req.get('host');
       const photos = req.files['photos'] 
-        ? req.files['photos'].map(file => `/uploads/${file.filename}`)
+        ? req.files['photos'].map(file => `${baseUrl}/uploads/${file.filename}`)
         : [];
       
       const certifications = req.files['certifications']
-        ? req.files['certifications'].map(file => `/uploads/${file.filename}`)
+        ? req.files['certifications'].map(file => `${baseUrl}/uploads/${file.filename}`)
         : [];
 
-      // Créer le nouveau service
+      // Le reste du code reste identique
       const nouveauService = new Service({
         nom,
         categorie,
@@ -93,10 +98,7 @@ app.post('/api/services/ajouter',
         certifications
       });
 
-      // Sauvegarder le service
       const serviceSauvegarde = await nouveauService.save();
-
-      // Répondre avec le service sauvegardé
       res.status(201).json(serviceSauvegarde);
     } catch (erreur) {
       console.error('Erreur lors de l\'ajout du service:', erreur);
@@ -120,6 +122,22 @@ app.get('/api/services', async (req, res) => {
   }
 });
 
+// Route pour récupérer un service par son ID
+app.get('/api/services/:id', async (req, res) => {
+  try {
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return res.status(404).json({ message: 'Service non trouvé' });
+    }
+    res.json(service);
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Erreur lors de la récupération du service',
+      erreur: error.message 
+    });
+  }
+});
+
 // Configuration du port
 const PORT = process.env.PORT || 5000;
 
@@ -127,7 +145,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur le port ${PORT}`);
 });
-
-
 
 
